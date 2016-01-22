@@ -2,6 +2,9 @@
 #define YAS_CONFIGURATION_H
 
 #include <Wt/WString>
+#include <map>
+
+#include "../common/yas_global.h"
 
 using namespace Wt;
 
@@ -17,7 +20,11 @@ public:
     WString webgui_port;
     WString webgui_password;
 
+    WStringList                folders;
+    std::map<WString, WString> folderAlias;
+
     WString db_name;
+
 
 private:
     bool configurationValid;

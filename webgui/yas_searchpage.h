@@ -22,11 +22,16 @@ public:
 
     Wt::Dbo::backend::Sqlite3 dbBackend;
     Wt::Dbo::Session          dbSession;
-    Wt::Dbo::QueryModel< Wt::Dbo::ptr<yasArchiveEntry> >* dbQuery;
+    Wt::Dbo::QueryModel<Wt::Dbo::ptr<yasArchiveEntry>>* dbQuery;
 
     WTableView* tableView;
+    WLineEdit*  searchEdit;
+    WText*      informationText;
 
     yasApplication* app;
+
+    void performSearch();
+    void showInformation(const WModelIndex& index);
 
 };
 

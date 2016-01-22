@@ -83,7 +83,7 @@ SOURCES += main.cpp \
     ../common/yas_configuration.cpp \
     yas_searchpage.cpp
 
-HEADERS += \ 
+HEADERS += ../common/yas_global.h \
     yas_application.h \
     ../common/yas_configuration.h \
     yas_searchpage.h \
