@@ -24,30 +24,25 @@ LIBS += /usr/local/lib/libwt.a
 LIBS += /usr/local/lib/libwtdbo.a
 LIBS += /usr/local/lib/libwtdbosqlite3.a
 
-LIBS += $$ICU_PATH/libicui18n.a
-LIBS += $$ICU_PATH/libicuuc.a
-LIBS += $$ICU_PATH/libicudata.a
-
 LIBS += $$BOOST_PATH/libboost_thread.a
 LIBS += $$BOOST_PATH/libboost_filesystem.a
 LIBS += $$BOOST_PATH/libboost_signals.a
 LIBS += $$BOOST_PATH/libboost_regex.a
 LIBS += $$BOOST_PATH/libboost_random.a
 LIBS += $$BOOST_PATH/libboost_date_time.a
-LIBS += $$BOOST_PATH/libboost_program_options.a
 LIBS += $$BOOST_PATH/libboost_system.a
 
 LIBS += -lrt
-
-LIBS += /usr/lib/x86_64-linux-gnu/libz.a
-LIBS += /usr/lib/x86_64-linux-gnu/libm.a
-
 LIBS += -ldl
 
 TEMPLATE = app
 
-SOURCES += main.cpp 
+SOURCES += main.cpp \ 
+    yas_indexer.cpp \
+    ../common/yas_configuration.cpp
 
-HEADERS += 
+HEADERS += ../common/yas_global.h \
+    yas_indexer.h \
+    ../common/yas_configuration.h
 
 
