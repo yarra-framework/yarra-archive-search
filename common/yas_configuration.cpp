@@ -21,6 +21,7 @@ yasConfiguration::yasConfiguration()
     webgui_port    ="9090";
     webgui_password="none";
 
+    keepUnseenEntries=14;
     db_name="yas.db";
 }
 
@@ -39,14 +40,37 @@ void yasConfiguration::loadConfiguration()
         // Read the list of folders that should be parsed by the indexer
         BOOST_FOREACH(boost::property_tree::ptree::value_type &v, inifile.get_child("Folders"))
         {
-            folders.push_back(WString::fromUTF8(boost::lexical_cast<std::string>(v.first.data())));
+            std::string folder=boost::lexical_cast<std::string>(v.first.data());
+
+            // Remove possible "/" at the end
+            if (folder.at(folder.length()-1)=='/')
+            {
+                folder.pop_back();
+            }
+
+            folders.push_back(WString::fromUTF8(folder));
         }
 
         // Read the list of aliases that should be used for the folder paths
         BOOST_FOREACH(boost::property_tree::ptree::value_type &v, inifile.get_child("FolderAlias"))
         {
-            folderAlias[WString::fromUTF8(boost::lexical_cast<std::string>(v.first.data()))]=WString::fromUTF8(boost::lexical_cast<std::string>(v.second.data()));
+            std::string folder=boost::lexical_cast<std::string>(v.first.data());
+            std::string alias =boost::lexical_cast<std::string>(v.second.data());
+
+            // Remove possible "/" at the end
+            if (folder.at(folder.length()-1)=='/')
+            {
+                folder.pop_back();
+            }
+            if (alias.at(alias.length()-1)=='/')
+            {
+                alias.pop_back();
+            }
+
+            folderAlias[WString::fromUTF8(folder)]=WString::fromUTF8(alias);
         }
+
+        keepUnseenEntries=inifile.get<int>("Indexer.KeepUnseenEntries", keepUnseenEntries);
 
         configurationValid=true;
     }

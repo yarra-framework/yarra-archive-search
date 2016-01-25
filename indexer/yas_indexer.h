@@ -3,6 +3,10 @@
 
 #include "../common/yas_configuration.h"
 
+#include <Wt/Dbo/Dbo>
+#include <Wt/Dbo/backend/Sqlite3>
+
+
 class yasIndexer
 {
 public:
@@ -14,12 +18,24 @@ public:
     };
 
     yasIndexer(int argc, char* argv[]);
+    ~yasIndexer();
 
     void perform();
     void showHelp();
     void runIndexer();
     void clearIndex();
-    int getReturnValue();
+    int  getReturnValue();
+
+    bool prepareDatabase();
+    void processFolders();
+    void dropUnseenEntries();
+
+    bool isFileIndexed(std::string path, std::string filename);
+
+    std::string getAliasedPath(std::string fullPath, WString folder, WString alias);
+
+    Wt::Dbo::backend::Sqlite3* dbBackend;
+    Wt::Dbo::Session* dbSession;
 
     yasConfiguration configuration;
 

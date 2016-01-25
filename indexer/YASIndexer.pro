@@ -21,8 +21,8 @@ QMAKE_CXXFLAGS += -DNDEBUG -std=c++11 -DWT_DEPRECATED_3_0_0
 
 # Statically link dependencies
 LIBS += /usr/local/lib/libwt.a
-LIBS += /usr/local/lib/libwtdbo.a
 LIBS += /usr/local/lib/libwtdbosqlite3.a
+LIBS += /usr/local/lib/libwtdbo.a
 
 LIBS += $$BOOST_PATH/libboost_thread.a
 LIBS += $$BOOST_PATH/libboost_filesystem.a
@@ -43,6 +43,7 @@ SOURCES += main.cpp \
 
 HEADERS += ../common/yas_global.h \
     yas_indexer.h \
-    ../common/yas_configuration.h
+    ../common/yas_configuration.h \
+    ../common/yas_archiveentry.h
 
 

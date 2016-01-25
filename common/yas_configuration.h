@@ -23,6 +23,7 @@ public:
     WStringList                folders;
     std::map<WString, WString> folderAlias;
 
+    int keepUnseenEntries;
     WString db_name;
 
 
