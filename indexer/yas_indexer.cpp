@@ -9,14 +9,8 @@
 #include <vector>
 #include <chrono>
 
-#include <boost/filesystem.hpp>
-#include <boost/property_tree/ini_parser.hpp>
-#include <boost/program_options.hpp>
-#include <boost/exception/all.hpp>
-
-
 using namespace Wt;
-namespace fs = boost::filesystem;
+
 
 
 yasIndexer::yasIndexer(int argc, char* argv[])
@@ -47,7 +41,6 @@ yasIndexer::yasIndexer(int argc, char* argv[])
             action=ABORT;
         }
     }
-
 }
 
 
@@ -183,6 +176,7 @@ void yasIndexer::processFolders()
     // TODO: Track time
 
     int totalFilesFound=0;
+    int newFilesAdded=0;
     auto startTime=std::chrono::system_clock::now();
 
     // Sequentially search through configured folders
@@ -214,23 +208,17 @@ void yasIndexer::processFolders()
                         {
                             totalFilesFound++;
 
-                            LOG("DBG: " << dir_entry->path().string());
-                            LOG("ALS: " << getAliasedPath(dir_entry->path().string(), folder, alias));
+                            std::string aliasedPath=getAliasedPath(dir_entry->path().parent_path().string(), folder, alias);
+                            std::string filename=dir_entry->path().filename().string();
 
-                            /*
-                            Wt::Dbo::ptr<yasArchiveEntry> measFileMeta(new yasArchiveEntry(dir_entry.path()));
-                            std::cout << "Processing " << dir_entry.path();
-                            if (!isMetaIndexed(session, *measFileMeta))
+                            if (!isFileIndexed(aliasedPath, filename))
                             {
-                                std::cout << " -> new entry" << std::endl;
-                                measFileMeta.modify()->readMeasFile(dir_entry.path().string());
-                                insertMeta(session, measFileMeta);
+                                // Create new index entry for file
+                                if (indexFile(dir_entry->path(), aliasedPath, filename))
+                                {
+                                    newFilesAdded++;
+                                }
                             }
-                            else
-                            {
-                                std::cout << " -> existing entry" << std::endl;
-                            }
-                            */
                         }
                         catch (const std::runtime_error &e)
                         {
@@ -257,8 +245,9 @@ void yasIndexer::processFolders()
     auto elapsedTime=std::chrono::duration_cast<std::chrono::seconds>(endTime-startTime);
 
     LOG("");
-    LOG("Total files processed: "  << totalFilesFound);
-    LOG("Elasped time: " << elapsedTime.count() << " sec");
+    LOG("New files added:       " << newFilesAdded);
+    LOG("Total files processed: " << totalFilesFound);
+    LOG("Elapsed time:          " << elapsedTime.count() << " sec");
 }
 
 
@@ -301,4 +290,34 @@ bool yasIndexer::isFileIndexed(std::string path, std::string filename)
     }
 
     return false;
+}
+
+
+bool yasIndexer::indexFile(fs::path path, std::string aliasedPath, std::string filename)
+{
+    //LOG("DBG   : " << path.string());
+    //LOG("Folder: " << aliasedPath);
+    //LOG("File  : " << filename);
+    //LOG("");
+
+    // TODO: Create new index entry
+    // TODO: Read values from TWIX file
+    // TODO: Read additional values from .task file
+
+    return true;
+
+    /*
+    Wt::Dbo::ptr<yasArchiveEntry> measFileMeta(new yasArchiveEntry(dir_entry.path()));
+    std::cout << "Processing " << dir_entry.path();
+    if (!isMetaIndexed(session, *measFileMeta))
+    {
+        std::cout << " -> new entry" << std::endl;
+        measFileMeta.modify()->readMeasFile(dir_entry.path().string());
+        insertMeta(session, measFileMeta);
+    }
+    else
+    {
+        std::cout << " -> existing entry" << std::endl;
+    }
+    */
 }

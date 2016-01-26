@@ -165,7 +165,8 @@ void yasSearchPage::showInformation(const WModelIndex& index)
         Wt::Dbo::ptr<yasArchiveEntry> entry=dbQuery->stableResultRow(index.row());
 
         // Show the path location
-        informationContent+=WString(entry->path) + "/" + WString(entry->filename);
+        informationContent+="Folder: " + WString(entry->path) + "<br />";
+        informationContent+="File: "   + WString(entry->filename);
 
         WString writeTimeString=WString(ctime(&entry->writeTime));
 

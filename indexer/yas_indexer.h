@@ -6,6 +6,13 @@
 #include <Wt/Dbo/Dbo>
 #include <Wt/Dbo/backend/Sqlite3>
 
+#include <boost/filesystem.hpp>
+#include <boost/property_tree/ini_parser.hpp>
+#include <boost/program_options.hpp>
+#include <boost/exception/all.hpp>
+
+namespace fs = boost::filesystem;
+
 
 class yasIndexer
 {
@@ -31,6 +38,7 @@ public:
     void dropUnseenEntries();
 
     bool isFileIndexed(std::string path, std::string filename);
+    bool indexFile(fs::path path, std::string aliasedPath, std::string filename);
 
     std::string getAliasedPath(std::string fullPath, WString folder, WString alias);
 
