@@ -182,6 +182,10 @@ void yasIndexer::processFolders()
 {
     // TODO: Track time
 
+    int totalFilesFound=0;
+    auto startTime=std::chrono::system_clock::now();
+
+    // Sequentially search through configured folders
     for (WString& folder : configuration.folders)
     {
         fs::path folderPath(folder.toUTF8());
@@ -196,18 +200,25 @@ void yasIndexer::processFolders()
                 alias=configuration.folderAlias[folder];
             }
 
-            // TODO
-
-            /*
             try
             {
-                for (const auto &dir_entry : fs::recursive_directory_iterator(dir_path))
+                // Recursively iterate through folder
+                fs::recursive_directory_iterator dir_entry(folderPath);
+                fs::recursive_directory_iterator iter_end;
+
+                while (dir_entry != iter_end)
                 {
-                    if (dir_entry.path().extension() == measFileExtension)
+                    if (dir_entry->path().extension()==".dat")
                     {
                         try
                         {
-                            Wt::Dbo::ptr<MeasFileMeta> measFileMeta(new MeasFileMeta(dir_entry.path()));
+                            totalFilesFound++;
+
+                            LOG("DBG: " << dir_entry->path().string());
+                            LOG("ALS: " << getAliasedPath(dir_entry->path().string(), folder, alias));
+
+                            /*
+                            Wt::Dbo::ptr<yasArchiveEntry> measFileMeta(new yasArchiveEntry(dir_entry.path()));
                             std::cout << "Processing " << dir_entry.path();
                             if (!isMetaIndexed(session, *measFileMeta))
                             {
@@ -219,25 +230,35 @@ void yasIndexer::processFolders()
                             {
                                 std::cout << " -> existing entry" << std::endl;
                             }
+                            */
                         }
                         catch (const std::runtime_error &e)
                         {
-                            LOG(ERROR, "Exception when reading " << dir_entry.path() << ": " << e.what());
+                            LOG("ERROR: Unable to read file " << dir_entry->path() << " (" << e.what() << ")");
                         }
                     }
+
+                    ++dir_entry;
                 }
+
             }
             catch (const fs::filesystem_error & e)
             {
-                LOG(ERROR, "Exception when recursively iterating " << dir_path << ": " << boost::diagnostic_information(e));
+                LOG("ERROR: Unable to access directory " << folderPath << " (" << boost::diagnostic_information(e) << ")");
             }
-*/
         }
         else
         {
-            LOG("ERROR: The path `" << folder << "` does not exist or is not accessible.");
+            LOG("ERROR: The path " << folder << " does not exist or is not accessible.");
         }
     }
+
+    auto endTime=std::chrono::system_clock::now();
+    auto elapsedTime=std::chrono::duration_cast<std::chrono::seconds>(endTime-startTime);
+
+    LOG("");
+    LOG("Total files processed: "  << totalFilesFound);
+    LOG("Elasped time: " << elapsedTime.count() << " sec");
 }
 
 
