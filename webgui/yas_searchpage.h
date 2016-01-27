@@ -31,7 +31,7 @@ public:
     yasApplication* app;
 
     void performSearch();
-    void showInformation(const WModelIndex& index);
+    void showInformation();
 
 };
 

@@ -1,6 +1,8 @@
 #include "yas_searchpage.h"
 #include "yas_application.h"
 
+#include <boost/algorithm/string/replace.hpp>
+
 #include <Wt/WPanel>
 #include <Wt/WVBoxLayout>
 #include <Wt/WHBoxLayout>
@@ -49,6 +51,8 @@ yasSearchPage::yasSearchPage(yasApplication* parent)
     tableView->setAlternatingRowColors(true);
     tableView->setModel(dbQuery);
 
+    tableView->setHeaderHeight(32);
+    tableView->setRowHeight(28);
     tableView->setColumnWidth(0, 350);
     tableView->setColumnWidth(1, 150);
     tableView->setColumnWidth(2, 150);
@@ -62,11 +66,11 @@ yasSearchPage::yasSearchPage(yasApplication* parent)
 
     tableView->sortByColumn(0, AscendingOrder);
     tableView->setMinimumSize(Wt::WLength::Auto,100);
-    tableView->clicked().connect(this, &yasSearchPage::showInformation);
+    tableView->selectionChanged().connect(this, &yasSearchPage::showInformation);
 
     WVBoxLayout* pageLayout=new WVBoxLayout();
     pageLayout->setContentsMargins(30, 30, 30, 10);
-    pageLayout->setSpacing(10);
+    pageLayout->setSpacing(15);
     this->setLayout(pageLayout);
 
     WContainerWidget* searchWidgets=new WContainerWidget();
@@ -92,11 +96,17 @@ yasSearchPage::yasSearchPage(yasApplication* parent)
     infoPanel->setTitleBar(true);
     infoPanel->setTitle("Information");
     infoPanel->addStyleClass("panel-info");
-    infoPanel->setMinimumSize(Wt::WLength::Auto,150);
+    infoPanel->setMinimumSize(Wt::WLength::Auto,154);
 
     informationText=new WText("");
     infoPanel->setCentralWidget(informationText);
     pageLayout->addWidget(infoPanel);
+    informationText->setMargin(0);
+
+    if (dbQuery->hasIndex(0,0))
+    {
+        tableView->select(dbQuery->index(0,0));
+    }
 
     searchEdit->setFocus();
 }
@@ -153,32 +163,43 @@ void yasSearchPage::performSearch()
         dbQuery->setQuery(query, true);
     }
 
+    if (dbQuery->hasIndex(0,0))
+    {
+        tableView->select(dbQuery->index(0,0));
+    }
 }
 
 
-void yasSearchPage::showInformation(const WModelIndex& index)
+void yasSearchPage::showInformation()
 {
     WString informationContent="";
 
-    if (index.isValid())
+    WModelIndexSet selectedRows=tableView->selectedIndexes();
+
+    if (!selectedRows.empty())
     {
+        WModelIndex index=*selectedRows.begin();
         Wt::Dbo::ptr<yasArchiveEntry> entry=dbQuery->stableResultRow(index.row());
 
+        // Create link to folder containg file
+        std::string htmlPath=entry->path;
+        htmlPath=std::string("file:///")+entry->path;;
+        boost::replace_all(htmlPath, "#", "%23");
+
         // Show the path location
-        informationContent+="Folder: " + WString(entry->path) + "<br />";
-        informationContent+="File: "   + WString(entry->filename);
+        informationContent+="<table><tr><td>Folder&nbsp;&nbsp;</td><td><span style=\"color: #580F8B;\"><strong><a href=\""+WString(htmlPath)+"\" target=\"_blank\">"+WString(entry->path)+"</a></strong></span></td></tr>";
+        informationContent+="<tr><td>File&nbsp;&nbsp;</td><td><span style=\"color: #580F8B; margin-bottom: 8px;\"><strong>"+WString(entry->filename)+"</strong></span></td></tr></table>";
 
+        // Show information about acquisition / write time
         WString writeTimeString=WString(ctime(&entry->writeTime));
+        informationContent+="<p style=\"margin-top: 6px;\">Acquired on <span style=\"color: #580F8B;\">"+WString(entry->acquisitionDate)+" "+WString(entry->acquisitionTime)+"</span>, archived on <span style=\"color: #580F8B;\">"+writeTimeString+"</span>";
 
-        informationContent+="<br />Acquired on " + WString(entry->acquisitionDate) + " " + WString(entry->acquisitionTime) + ", archived on " + writeTimeString;
-
-        // If information from a Yarra task file is available, show it
+        // If additional information from Yarra task file is available, show it
         if (!entry->yarraServer.empty())
         {
-            informationContent+="<br />Submitted from " + WString(entry->MRSystem) + " to YarraServer " + WString(entry->yarraServer);
+            informationContent+="<br /><span class=\"label label-warning\">Task</span>&nbsp; Submitted from <span style=\"color: #580F8B;\">"+WString(entry->MRSystem)+"</span> to server <span style=\"color: #580F8B;\">"+WString(entry->yarraServer)+"</span>";
         }
-
-        return;
+        informationContent+="</p>";
     }
 
     informationText->setText(informationContent);

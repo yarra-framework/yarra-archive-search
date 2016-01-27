@@ -4,6 +4,8 @@
 
 #include <Wt/WString>
 
+#include <boost/property_tree/ini_parser.hpp>
+
 #include <cstring>
 #include <iostream>
 #include <vector>
@@ -300,9 +302,53 @@ bool yasIndexer::indexFile(fs::path path, std::string aliasedPath, std::string f
     //LOG("File  : " << filename);
     //LOG("");
 
-    // TODO: Create new index entry
-    // TODO: Read values from TWIX file
-    // TODO: Read additional values from .task file
+    // Create new index entry
+    Wt::Dbo::ptr<yasArchiveEntry> fileEntry(new yasArchiveEntry());
+
+    bool isEntryValid=true;
+
+    fileEntry.modify()->lastSeen =std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+    fileEntry.modify()->filename =filename;
+    fileEntry.modify()->path     =aliasedPath;
+
+    try
+    {
+        fileEntry.modify()->writeTime=fs::last_write_time(path);
+    }
+    catch (const fs::filesystem_error & e)
+    {
+        fileEntry.modify()->writeTime=0;
+    }
+
+    // Read values from TWIX file
+    // TODO
+
+    // Read additional values from .task file
+    fs::path taskFilename = (path.parent_path() / path.stem()).string() + ".task";
+
+    if (fs::exists(taskFilename))
+    {
+        try
+        {
+            boost::property_tree::ptree taskFile;
+            boost::property_tree::ini_parser::read_ini(taskFilename.string(), taskFile);
+
+            fileEntry.modify()->MRSystem       =taskFile.get<std::string>("Information.SystemName"    , "");
+            fileEntry.modify()->accessionNumber=taskFile.get<std::string>("Task.ACC"                  , "");
+            fileEntry.modify()->yarraServer    =taskFile.get<std::string>("Information.SelectedServer", "");
+        }
+        catch (const boost::exception & e)
+        {
+            LOG("WARNING: Unable to read task file " << taskFilename.string() << " (" << boost::diagnostic_information(e) << ")");
+        }
+    }
+
+    // Add the entry to the database
+    if (isEntryValid)
+    {
+        Wt::Dbo::Transaction transaction(*dbSession);
+        dbSession->add(fileEntry);
+    }
 
     return true;
 
