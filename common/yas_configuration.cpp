@@ -51,23 +51,30 @@ void yasConfiguration::loadConfiguration()
             folders.push_back(WString::fromUTF8(folder));
         }
 
-        // Read the list of aliases that should be used for the folder paths
-        BOOST_FOREACH(boost::property_tree::ptree::value_type &v, inifile.get_child("FolderAlias"))
+        // Read the list of aliases that should be used for the folder paths.
+        // Catch exceptions for the case that no folder aliases have been defined.
+        try
         {
-            std::string folder=boost::lexical_cast<std::string>(v.first.data());
-            std::string alias =boost::lexical_cast<std::string>(v.second.data());
-
-            // Remove possible "/" at the end
-            if (folder.at(folder.length()-1)=='/')
+            BOOST_FOREACH(boost::property_tree::ptree::value_type &v, inifile.get_child("FolderAlias"))
             {
-                folder.pop_back();
-            }
-            if (alias.at(alias.length()-1)=='/')
-            {
-                alias.pop_back();
-            }
+                std::string folder=boost::lexical_cast<std::string>(v.first.data());
+                std::string alias =boost::lexical_cast<std::string>(v.second.data());
 
-            folderAlias[WString::fromUTF8(folder)]=WString::fromUTF8(alias);
+                // Remove possible "/" at the end
+                if (folder.at(folder.length()-1)=='/')
+                {
+                    folder.pop_back();
+                }
+                if (alias.at(alias.length()-1)=='/')
+                {
+                    alias.pop_back();
+                }
+
+                folderAlias[WString::fromUTF8(folder)]=WString::fromUTF8(alias);
+            }
+        }
+        catch(const boost::property_tree::ptree_error &e)
+        {
         }
 
         keepUnseenEntries=inifile.get<int>("Indexer.KeepUnseenEntries", keepUnseenEntries);

@@ -1,6 +1,7 @@
 #include "yas_indexer.h"
 #include "../common/yas_global.h"
 #include "../common/yas_archiveentry.h"
+#include "yas_twixreader.h"
 
 #include <Wt/WString>
 
@@ -321,7 +322,22 @@ bool yasIndexer::indexFile(fs::path path, std::string aliasedPath, std::string f
     }
 
     // Read values from TWIX file
-    // TODO
+    yasTwixReader twixReader(path.string());
+
+    if (!twixReader.perform())
+    {
+        LOG("Error parsing file "+path.string())
+        LOG("Reason: "+twixReader.getResultString());
+        isEntryValid=false;
+    }
+    else
+    {
+        fileEntry.modify()->patientName    =twixReader.getValue(yasTwixReader::patientName);
+        fileEntry.modify()->patientID      =twixReader.getValue(yasTwixReader::patientID);
+        fileEntry.modify()->protocolName   =twixReader.getValue(yasTwixReader::protocolName);
+        fileEntry.modify()->acquisitionTime=twixReader.getValue(yasTwixReader::acquisitionTime);
+        fileEntry.modify()->acquisitionDate=twixReader.getValue(yasTwixReader::acquisitionDate);
+    }
 
     // Read additional values from .task file
     fs::path taskFilename = (path.parent_path() / path.stem()).string() + ".task";
@@ -348,22 +364,11 @@ bool yasIndexer::indexFile(fs::path path, std::string aliasedPath, std::string f
     {
         Wt::Dbo::Transaction transaction(*dbSession);
         dbSession->add(fileEntry);
-    }
 
-    return true;
-
-    /*
-    Wt::Dbo::ptr<yasArchiveEntry> measFileMeta(new yasArchiveEntry(dir_entry.path()));
-    std::cout << "Processing " << dir_entry.path();
-    if (!isMetaIndexed(session, *measFileMeta))
-    {
-        std::cout << " -> new entry" << std::endl;
-        measFileMeta.modify()->readMeasFile(dir_entry.path().string());
-        insertMeta(session, measFileMeta);
+        return true;
     }
     else
     {
-        std::cout << " -> existing entry" << std::endl;
+        return false;
     }
-    */
 }

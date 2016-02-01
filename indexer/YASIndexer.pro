@@ -39,11 +39,14 @@ TEMPLATE = app
 
 SOURCES += main.cpp \ 
     yas_indexer.cpp \
-    ../common/yas_configuration.cpp
+    ../common/yas_configuration.cpp \
+    yas_twixreader.cpp
 
 HEADERS += ../common/yas_global.h \
     yas_indexer.h \
     ../common/yas_configuration.h \
-    ../common/yas_archiveentry.h
+    ../common/yas_archiveentry.h \
+    yas_twixreader.h \
+    yas_twixheader.h
 
 
