@@ -48,7 +48,7 @@ void yasConfiguration::loadConfiguration()
                 folder.pop_back();
             }
 
-            folders.push_back(WString::fromUTF8(folder));
+            folders.push_back(folder);
         }
 
         // Read the list of aliases that should be used for the folder paths.
@@ -70,11 +70,14 @@ void yasConfiguration::loadConfiguration()
                     alias.pop_back();
                 }
 
-                folderAlias[WString::fromUTF8(folder)]=WString::fromUTF8(alias);
+                folderAlias[folder]=alias;
+
+                //std::cout << "Setting alias " << folder << " --> " << alias << std::endl;
             }
         }
         catch(const boost::property_tree::ptree_error &e)
         {
+            //std::cout << "Problem while reading FolderAlias" << std::endl;
         }
 
         keepUnseenEntries=inifile.get<int>("Indexer.KeepUnseenEntries", keepUnseenEntries);

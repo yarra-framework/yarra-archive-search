@@ -40,7 +40,7 @@ public:
     bool isFileIndexed(std::string path, std::string filename);
     bool indexFile(fs::path path, std::string aliasedPath, std::string filename);
 
-    std::string getAliasedPath(std::string fullPath, WString folder, WString alias);
+    std::string getAliasedPath(std::string fullPath, std::string folder, std::string alias);
 
     Wt::Dbo::backend::Sqlite3* dbBackend;
     Wt::Dbo::Session* dbSession;

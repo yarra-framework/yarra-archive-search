@@ -20,8 +20,8 @@ public:
     WString webgui_port;
     WString webgui_password;
 
-    WStringList                folders;
-    std::map<WString, WString> folderAlias;
+    StringList                         folders;
+    std::map<std::string, std::string> folderAlias;
 
     int keepUnseenEntries;
     WString db_name;

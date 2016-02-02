@@ -201,7 +201,7 @@ void yasSearchPage::showInformation()
 
             if (!entry->yarraServer.empty())
             {
-                informationContent+="to server <span style=\"color: #580F8B;\">"+WString(entry->yarraServer)+"</span>";
+                informationContent+=" to server <span style=\"color: #580F8B;\">"+WString(entry->yarraServer)+"</span>";
             }
         }
         informationContent+="</p>";

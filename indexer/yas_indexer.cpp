@@ -15,7 +15,6 @@
 using namespace Wt;
 
 
-
 yasIndexer::yasIndexer(int argc, char* argv[])
 {
     returnValue=0;
@@ -181,13 +180,13 @@ void yasIndexer::processFolders()
     auto startTime=std::chrono::system_clock::now();
 
     // Sequentially search through configured folders
-    for (WString& folder : configuration.folders)
+    for (std::string& folder : configuration.folders)
     {
-        fs::path folderPath(folder.toUTF8());
+        fs::path folderPath(folder);
 
         if (fs::is_directory(folderPath))
         {
-            WString alias="";
+            std::string alias="";
 
             // Get folder alias
             if (configuration.folderAlias.find(folder)!=configuration.folderAlias.end())
@@ -209,10 +208,16 @@ void yasIndexer::processFolders()
                         {
                             totalFilesFound++;
 
+                            // Inform the user about the progress
                             if (totalFilesFound % 100==0)
                             {
                                 LOG("..." << totalFilesFound << " files done...");
                             }
+
+                            //std::cout << "Full path is " << dir_entry->path().parent_path().string() << std::endl;
+                            //std::cout << "Folder is " << folder << std::endl;
+                            //std::cout << "Alias is " << alias << std::endl;
+                            //std::cout << "--------------" << std::endl;
 
                             std::string aliasedPath=getAliasedPath(dir_entry->path().parent_path().string(), folder, alias);
                             std::string filename=dir_entry->path().filename().string();
@@ -257,11 +262,11 @@ void yasIndexer::processFolders()
 }
 
 
-std::string yasIndexer::getAliasedPath(std::string fullPath, WString folder, WString alias)
+std::string yasIndexer::getAliasedPath(std::string fullPath, std::string folder, std::string alias)
 {
     if (!alias.empty())
     {
-        fullPath.replace(0, folder.toUTF8().length(), alias.toUTF8());
+        fullPath.replace(0, folder.length(), alias);
     }
 
     return fullPath;
@@ -343,9 +348,33 @@ bool yasIndexer::indexFile(fs::path path, std::string aliasedPath, std::string f
     }
 
     // Read additional values from .task file
-    fs::path taskFilename = (path.parent_path() / path.stem()).string() + ".task";
 
+    // First, test if a tast file exists and determine the name (.task / .task_prio / .task_night)
+    bool taskExists=false;
+    fs::path taskFilename = (path.parent_path() / path.stem()).string() + ".task";
     if (fs::exists(taskFilename))
+    {
+        taskExists=true;
+    }
+    else
+    {
+        taskFilename = (path.parent_path() / path.stem()).string() + ".task_prio";
+        if (fs::exists(taskFilename))
+        {
+            taskExists=true;
+        }
+        else
+        {
+            taskFilename = (path.parent_path() / path.stem()).string() + ".task_night";
+            if (fs::exists(taskFilename))
+            {
+                taskExists=true;
+            }
+        }
+    }
+
+    // Now read the information from the task
+    if (taskExists)
     {
         try
         {

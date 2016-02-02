@@ -156,7 +156,7 @@ bool yasTwixReader::splitAcquisitionTime(std::string input, std::string& timeStr
 
         if (dotPos==std::string::npos)
         {
-            // String does not match the norml format
+            // String does not match the usual format
             return false;
         }
     }

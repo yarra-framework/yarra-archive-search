@@ -8,11 +8,12 @@
 
 #define YAS_CONFIGFILE "YAS.ini"
 
-#define YAS_VERSION_INDEXER "0.1b2"
-#define YAS_VERSION_WEBGUI  "0.1b2"
+#define YAS_VERSION_INDEXER "0.1b4"
+#define YAS_VERSION_WEBGUI  "0.1b4"
 
 // String list, as used at various places in the code
 typedef std::vector<Wt::WString> WStringList;
+typedef std::vector<std::string> StringList;
 
 #define LOG(t) std::cout << t << std::endl;
 
