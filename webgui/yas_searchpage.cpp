@@ -195,9 +195,14 @@ void yasSearchPage::showInformation()
         informationContent+="<p style=\"margin-top: 6px;\">Acquired on <span style=\"color: #580F8B;\">"+WString(entry->acquisitionDate)+" "+WString(entry->acquisitionTime)+"</span>, archived on <span style=\"color: #580F8B;\">"+writeTimeString+"</span>";
 
         // If additional information from Yarra task file is available, show it
-        if (!entry->yarraServer.empty())
+        if (!entry->MRSystem.empty())
         {
-            informationContent+="<br /><span class=\"label label-warning\">Task</span>&nbsp; Submitted from <span style=\"color: #580F8B;\">"+WString(entry->MRSystem)+"</span> to server <span style=\"color: #580F8B;\">"+WString(entry->yarraServer)+"</span>";
+            informationContent+="<br /><span class=\"label label-warning\">Task</span>&nbsp; Submitted from <span style=\"color: #580F8B;\">"+WString(entry->MRSystem)+"</span>";
+
+            if (!entry->yarraServer.empty())
+            {
+                informationContent+="to server <span style=\"color: #580F8B;\">"+WString(entry->yarraServer)+"</span>";
+            }
         }
         informationContent+="</p>";
     }

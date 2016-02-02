@@ -141,26 +141,80 @@ bool yasTwixReader::perform()
 }
 
 
+bool yasTwixReader::splitAcquisitionTime(std::string input, std::string& timeString, std::string& dateString)
+{
+    // Format is 1.3.12.2.1107.5.2.30.25654.1.20130506212248515.0.0.0
+    timeString="";
+    dateString="";
+
+    // Remove the numbers and dots in front of the date/time section
+    int dotPos=0;
+
+    for (int i=0; i<10; i++)
+    {
+        dotPos=input.find(".",dotPos+1);
+
+        if (dotPos==std::string::npos)
+        {
+            // String does not match the norml format
+            return false;
+        }
+    }
+    input.erase(0,dotPos+1);
+
+    dateString=input.substr(4,2)+"/"+input.substr(6,2)+"/"+input.substr(0,4);
+    timeString=input.substr(8,2)+":"+input.substr(10,2)+":"+input.substr(12,2);
+
+    //std::cout << "ACQ:  " << input << std::endl;
+    //std::cout << "Date: " << dateString << std::endl;
+    //std::cout << "Time: " << timeString << std::endl;
+
+    return true;
+}
+
+
 void yasTwixReader::evaluateLine(std::string& line, std::ifstream& file)
 {
     int indexFound=-1;
+    int searchPos=std::string::npos;
 
     for (int i=0; i<searchEntryList.size(); i++)
     {
-        if (line.find(searchEntryList.at(i).searchString)!=std::string::npos)
+        searchPos=line.find(searchEntryList.at(i).searchString);
+
+        if (searchPos!=std::string::npos)
         {
-            // TODO: Get value from line and write into result array
-            std::string value="";
-
+            // Get value from line and write into result array
+            std::string value=line;
             valueType target=searchEntryList.at(i).valueAssignment;
-            std::cout << line << std::endl;
 
+            value.erase(0,searchPos+searchEntryList.at(i).searchString.length());
+
+            int quotePos=value.find("\"");
+
+            if (quotePos==std::string::npos)
+            {
+                // If the line does not contain quotation marks, the value might be in the next line
+                // TODO: Read two additional lines from the file
+            } else
+            {
+                // Delete the quotation marks including preceeding white space
+                value.erase(0,quotePos+1);
+            }
+
+            // Remove the trailing quotation mark if it exists
+            quotePos=value.find("\"");
+            if (quotePos!=std::string::npos)
+            {
+                value.erase(quotePos);
+            }
+
+            //std::cout << value << std::endl;
 
             if (target==acquisitionTime)
             {
-                // TOOD: Split the string into date and time
-                values[acquisitionTime]="";
-                values[acquisitionDate]="";
+                // Split the string into date and time
+                splitAcquisitionTime(value, values[acquisitionTime], values[acquisitionDate]);
             }
             else
             {

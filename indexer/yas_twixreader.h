@@ -49,6 +49,7 @@ public:
     fileVersionType  getFileType();
     std::string      getValue(valueType value);
     void             evaluateLine(std::string& line, std::ifstream& file);
+    bool             splitAcquisitionTime(std::string input, std::string& timeString, std::string& dateString);
 
     std::string      twixFilename;
     fileVersionType  fileVersion;

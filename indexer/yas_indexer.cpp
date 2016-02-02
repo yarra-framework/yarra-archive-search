@@ -176,8 +176,6 @@ bool yasIndexer::prepareDatabase()
 
 void yasIndexer::processFolders()
 {
-    // TODO: Track time
-
     int totalFilesFound=0;
     int newFilesAdded=0;
     auto startTime=std::chrono::system_clock::now();
@@ -210,6 +208,11 @@ void yasIndexer::processFolders()
                         try
                         {
                             totalFilesFound++;
+
+                            if (totalFilesFound % 100==0)
+                            {
+                                LOG("..." << totalFilesFound << " files done...");
+                            }
 
                             std::string aliasedPath=getAliasedPath(dir_entry->path().parent_path().string(), folder, alias);
                             std::string filename=dir_entry->path().filename().string();
