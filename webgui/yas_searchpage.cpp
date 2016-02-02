@@ -163,6 +163,8 @@ void yasSearchPage::performSearch()
         dbQuery->setQuery(query, true);
     }
 
+    tableView->sortByColumn(0, AscendingOrder);
+
     if (dbQuery->hasIndex(0,0))
     {
         tableView->select(dbQuery->index(0,0));

@@ -22,6 +22,8 @@ WApplication* createApplication(const WEnvironment& env)
 int main(int argc, char **argv)
 {
     std::cout << std::endl;
+    std::cout << "Yarra Archive Search -- WebGUI Version " << YAS_VERSION_WEBGUI << std::endl;
+    std::cout << std::endl;
 
     configurationInstance.loadConfiguration();
 
