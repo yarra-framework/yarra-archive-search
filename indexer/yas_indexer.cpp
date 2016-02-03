@@ -151,6 +151,10 @@ void yasIndexer::clearIndex()
 bool yasIndexer::prepareDatabase()
 {
     dbBackend=new Wt::Dbo::backend::Sqlite3(configuration.db_name.toUTF8());
+
+    // Set database to write-ahead-logging to avoid locking in the WebGUI while the indexer is running
+    dbBackend->executeSql("PRAGMA journal_mode=WAL;");
+
     dbSession=new Wt::Dbo::Session;
     dbSession->setConnection(*dbBackend);
 

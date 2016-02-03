@@ -21,6 +21,9 @@ yasSearchPage::yasSearchPage(yasApplication* parent)
 {
     app=parent;
 
+    // Set database to write-ahead-logging to avoid locking while the indexer is running
+    dbBackend.executeSql("PRAGMA journal_mode=WAL;");
+
     // Init the db connection
     dbSession.setConnection(dbBackend);
 
