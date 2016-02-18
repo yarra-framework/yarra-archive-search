@@ -1,4 +1,5 @@
 #include "yas_twixreader.h"
+#include "../common/yas_global.h"
 #include "yas_twixheader.h"
 
 #include <iostream>
@@ -44,7 +45,7 @@ bool yasTwixReader::perform()
         return false;
     }
 
-    // Determin TWIX file type: VA/VB or VD/VE?
+    // Determine TWIX file type: VA/VB or VD/VE?
 
     uint32_t x[2];
     file.read ((char*)x, 2*sizeof(uint32_t));
@@ -61,7 +62,7 @@ bool yasTwixReader::perform()
 
     if (fileVersion==VDVE)
     {
-        uint32_t id, ndset;
+        uint32_t id=0, ndset=0;
         std::vector<VD::EntryHeader> veh;
 
         file.read((char*)&id,   sizeof(uint32_t));  // ID
@@ -71,6 +72,8 @@ bool yasTwixReader::perform()
         {
             // If there are more than 30 measurements, it's unlikely that the
             // file is a valid TWIX file
+            LOG("WARNING: Number of measurements in file " << ndset);
+
             result=FILE_INVALID;
             file.close();
             return false;
@@ -93,8 +96,16 @@ bool yasTwixReader::perform()
     file.read((char*)&headerLength, sizeof(uint32_t));
 
     if ((headerLength<=0) || (headerLength>1000000))
-    {
+    {        
         // File header is invalid
+
+        std::string fileType="VB";
+        if (fileVersion==VDVE)
+        {
+            fileType="VD/VE";
+        }
+        LOG("WARNING: Unusual header size " << headerLength << " (file type " << fileType << ")");
+
         result=FILE_INVALID;
         file.close();
         return false;

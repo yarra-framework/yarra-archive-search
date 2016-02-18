@@ -11,6 +11,7 @@
 #include <iostream>
 #include <vector>
 #include <chrono>
+#include <ctime>
 
 using namespace Wt;
 
@@ -106,6 +107,10 @@ void yasIndexer::runIndexer()
     prepareDatabase();
     processFolders();
     dropUnseenEntries();
+    LOG("");
+
+    std::time_t endTime=std::time(nullptr);
+    LOG("Done at " << ctime(&endTime));
 }
 
 
@@ -340,6 +345,7 @@ bool yasIndexer::indexFile(fs::path path, std::string aliasedPath, std::string f
     {
         LOG("Error parsing file "+path.string())
         LOG("Reason: "+twixReader.getResultString());
+        LOG("");
         isEntryValid=false;
     }
     else
