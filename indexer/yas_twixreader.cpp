@@ -95,7 +95,7 @@ bool yasTwixReader::perform()
     // Find header length
     file.read((char*)&headerLength, sizeof(uint32_t));
 
-    if ((headerLength<=0) || (headerLength>1000000))
+    if ((headerLength<=0) || (headerLength>5000000))
     {        
         // File header is invalid
 

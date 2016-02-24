@@ -48,7 +48,8 @@ public:
     yasConfiguration configuration;
 
     IndexAction action;
-    int returnValue;
+    bool debugOutput;
+    int  returnValue;
 };
 
 

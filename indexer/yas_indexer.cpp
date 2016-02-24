@@ -19,7 +19,9 @@ using namespace Wt;
 yasIndexer::yasIndexer(int argc, char* argv[])
 {
     returnValue=0;
-    action=RUNINDEXER;
+    debugOutput=false;
+    action=ABORT;
+
     dbBackend=nullptr;
     dbSession=nullptr;
 
@@ -38,11 +40,15 @@ yasIndexer::yasIndexer(int argc, char* argv[])
             action=CLEARINDEX;
         }
 
-        // Seems an unkown argument has been given. Abort process.
-        if (action==RUNINDEXER)
+        if (strcmp(argv[1], "--debug")==0)
         {
-            action=ABORT;
+            action=RUNINDEXER;
+            debugOutput=true;
         }
+    }
+    else
+    {
+        action=RUNINDEXER;
     }
 }
 
@@ -86,10 +92,11 @@ void yasIndexer::perform()
 
 void yasIndexer::showHelp()
 {
-    LOG("Without given argument, the indexing process is performed")
+    LOG("Without given argument, the indexing process is performed");
     LOG("");
-    LOG("--clear  Clears all entries from the database")
-    LOG("--help   Shows this help text")
+    LOG("--clear  Clears all entries from the database");
+    LOG("--help   Shows this help text");
+    LOG("--debug  Output debug information during index process");
 }
 
 
@@ -182,6 +189,8 @@ bool yasIndexer::prepareDatabase()
 }
 
 
+#define DEBUG(a) if (debugOutput) { LOG(a); }
+
 void yasIndexer::processFolders()
 {
     int totalFilesFound=0;
@@ -231,14 +240,23 @@ void yasIndexer::processFolders()
                             std::string aliasedPath=getAliasedPath(dir_entry->path().parent_path().string(), folder, alias);
                             std::string filename=dir_entry->path().filename().string();
 
+                            DEBUG("Processing " << dir_entry->path().string());
+
                             if (!isFileIndexed(aliasedPath, filename))
                             {
+                                DEBUG("New file, adding to index.");
+
                                 // Create new index entry for file
                                 if (indexFile(dir_entry->path(), aliasedPath, filename))
                                 {
                                     newFilesAdded++;
                                 }
                             }
+                            else
+                            {
+                                DEBUG("File already indexed.");
+                            }
+
                         }
                         catch (const std::runtime_error &e)
                         {
