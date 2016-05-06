@@ -162,16 +162,23 @@ void yasIndexer::clearIndex()
 
 bool yasIndexer::prepareDatabase()
 {
-    dbBackend=new Wt::Dbo::backend::Sqlite3(configuration.db_name.toUTF8());
+    try
+    {
+        dbBackend=new Wt::Dbo::backend::Sqlite3(configuration.db_name.toUTF8());
 
-    // Set database to write-ahead-logging to avoid locking in the WebGUI while the indexer is running
-    dbBackend->executeSql("PRAGMA journal_mode=WAL;");
+        // Set database to write-ahead-logging to avoid locking in the WebGUI while the indexer is running
+        dbBackend->executeSql("PRAGMA journal_mode=WAL;");
 
-    dbSession=new Wt::Dbo::Session;
-    dbSession->setConnection(*dbBackend);
+        dbSession=new Wt::Dbo::Session;
+        dbSession->setConnection(*dbBackend);
 
-    // Map the database table
-    dbSession->mapClass<yasArchiveEntry>("yasArchive");
+        // Map the database table
+        dbSession->mapClass<yasArchiveEntry>("yasArchive");
+    }
+    catch (const Wt::Dbo::Exception & e)
+    {
+        return false;
+    }
 
     // Create the database table if it does not exist. Will not do anything
     // if the database already exists.

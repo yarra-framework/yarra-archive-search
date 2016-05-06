@@ -173,7 +173,7 @@ bool yasTwixReader::splitAcquisitionTime(std::string input, std::string& timeStr
     }
     input.erase(0,dotPos+1);
 
-    dateString=input.substr(4,2)+"/"+input.substr(6,2)+"/"+input.substr(0,4);
+    dateString=input.substr(0,4)+"/"+input.substr(4,2)+"/"+input.substr(6,2);
     timeString=input.substr(8,2)+":"+input.substr(10,2)+":"+input.substr(12,2);
 
     //std::cout << "ACQ:  " << input << std::endl;

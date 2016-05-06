@@ -16,19 +16,55 @@
 using namespace Wt;
 
 
+saTableView::saTableView(WContainerWidget *parent)
+    : WTableView(parent)
+{
+    setLayoutSizeAware(true);
+    prepared=false;
+}
+
+void saTableView::layoutSizeChanged(int width, int)
+{
+    if (prepared)
+    {
+        int fullWidth=width-50;
+
+        if (fullWidth<1150)
+        {
+            fullWidth=1150;
+        }
+
+        setColumnWidth(0, int(fullWidth*0.3));
+        setColumnWidth(1, int(fullWidth*0.13));
+        setColumnWidth(2, int(fullWidth*0.13));
+        setColumnWidth(3, int(fullWidth*0.13));
+        setColumnWidth(4, int(fullWidth*0.3));
+    }
+}
+
+
 yasSearchPage::yasSearchPage(yasApplication* parent)
     : WContainerWidget(), dbBackend(parent->configuration->db_name.toUTF8())
 {
     app=parent;
 
-    // Set database to write-ahead-logging to avoid locking while the indexer is running
-    dbBackend.executeSql("PRAGMA journal_mode=WAL;");
+    try
+    {
+        // Set database to write-ahead-logging to avoid locking while the indexer is running
+        dbBackend.executeSql("PRAGMA journal_mode=WAL;");
 
-    // Init the db connection
-    dbSession.setConnection(dbBackend);
+        // Init the db connection
+        dbSession.setConnection(dbBackend);
 
-    // Map the database table
-    dbSession.mapClass<yasArchiveEntry>("yasArchive");
+        // Map the database table
+        dbSession.mapClass<yasArchiveEntry>("yasArchive");
+    }
+    catch (const Wt::Dbo::Exception & e)
+    {
+        std::cout << "ERROR: Unable to open database" << std::endl;
+        return;
+    }
+
 
     // Create the database in case that it does not exist yet
     try
@@ -49,7 +85,7 @@ yasSearchPage::yasSearchPage(yasApplication* parent)
     dbQuery->addColumn("AcquisitionDate", "Exam Date");
     dbQuery->addColumn("ProtocolName",    "Protocol");
 
-    tableView=new WTableView();
+    tableView=new saTableView();
     tableView->setSelectionMode(SingleSelection);
     tableView->setAlternatingRowColors(true);
     tableView->setModel(dbQuery);
@@ -112,6 +148,10 @@ yasSearchPage::yasSearchPage(yasApplication* parent)
     }
 
     searchEdit->setFocus();
+    updateTooltip();
+
+    // Table columns have been setup, resizing is possible now.
+    tableView->prepared=true;
 }
 
 
@@ -126,7 +166,8 @@ void yasSearchPage::performSearch()
     {
         std::string searchPhrase;
         searchStringStream >> searchPhrase;
-        if (!searchPhrase.empty()) {
+        if (!searchPhrase.empty())
+        {
             searchPhrases.push_back(searchPhrase);
         }
     }
@@ -172,6 +213,8 @@ void yasSearchPage::performSearch()
     {
         tableView->select(dbQuery->index(0,0));
     }
+
+    updateTooltip();
 }
 
 
@@ -215,4 +258,16 @@ void yasSearchPage::showInformation()
     informationText->setText(informationContent);
 }
 
+
+void yasSearchPage::updateTooltip()
+{
+    WString toolTipText=WString("{1} entries found in archive.").arg(dbQuery->rowCount());
+
+    if (dbQuery->rowCount()==1)
+    {
+        toolTipText="1 entry found in archive.";
+    }
+
+    tableView->setToolTip(toolTipText);
+}
 

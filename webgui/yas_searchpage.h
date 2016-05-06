@@ -14,6 +14,17 @@ using namespace Wt;
 
 class yasApplication;
 
+// Size-aware table view that expands the columns to cover the whole table
+// after resizing the window
+class saTableView : public WTableView
+{
+public:
+    bool prepared;
+
+    saTableView(WContainerWidget *parent=0);
+    void layoutSizeChanged(int width, int height);
+};
+
 
 class yasSearchPage : public WContainerWidget
 {
@@ -24,15 +35,15 @@ public:
     Wt::Dbo::Session          dbSession;
     Wt::Dbo::QueryModel<Wt::Dbo::ptr<yasArchiveEntry>>* dbQuery;
 
-    WTableView* tableView;
-    WLineEdit*  searchEdit;
-    WText*      informationText;
+    saTableView* tableView;
+    WLineEdit*   searchEdit;
+    WText*       informationText;
 
     yasApplication* app;
 
     void performSearch();
     void showInformation();
-
+    void updateTooltip();
 };
 
 
