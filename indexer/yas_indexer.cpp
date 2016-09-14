@@ -196,8 +196,6 @@ bool yasIndexer::prepareDatabase()
 }
 
 
-#define DEBUG(a) if (debugOutput) { LOG(a); }
-
 void yasIndexer::processFolders()
 {
     int totalFilesFound=0;
@@ -365,6 +363,7 @@ bool yasIndexer::indexFile(fs::path path, std::string aliasedPath, std::string f
 
     // Read values from TWIX file
     yasTwixReader twixReader(path.string());
+    twixReader.setDebug(debugOutput);
 
     if (!twixReader.perform())
     {

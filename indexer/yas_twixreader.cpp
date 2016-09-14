@@ -19,6 +19,8 @@ yasTwixReader::yasTwixReader(std::string filename)
 
     lastMeasOffset=0;
     headerLength=0;
+
+    debugOutput=false;
 }
 
 
@@ -53,10 +55,12 @@ bool yasTwixReader::perform()
     if ((x[0]==0) && (x[1]<=64))
     {
         fileVersion=VDVE;
+        DEBUG("File type is VD/VE");
     }
     else
     {
         fileVersion=VAVB;
+        DEBUG("File type is VA/VB");
     }
     file.seekg(0);
 
@@ -68,11 +72,23 @@ bool yasTwixReader::perform()
         file.read((char*)&id,   sizeof(uint32_t));  // ID
         file.read((char*)&ndset,sizeof(uint32_t));  // # data sets
 
+        DEBUG("Numer of datasets in file: " << ndset);
+
         if (ndset>30)
         {
             // If there are more than 30 measurements, it's unlikely that the
             // file is a valid TWIX file
             LOG("WARNING: Number of measurements in file " << ndset);
+
+            result=FILE_INVALID;
+            file.close();
+            return false;
+        }
+
+        if (ndset==0)
+        {
+            LOG("WARNING: No measurements in file. Is file damaged?");
+            LOG("WARNING: Skipping.");
 
             result=FILE_INVALID;
             file.close();
@@ -134,7 +150,8 @@ bool yasTwixReader::perform()
         }
 
         // Terminate the parsing once the acquisiton protocol is reached
-        if (line.find("### ASCCONV BEGIN ###")!=std::string::npos)
+        if ((line.find("### ASCCONV BEGIN ###")!=std::string::npos) ||
+            (line.find("### ASCCONV BEGIN object=MrProtDataImpl")!=std::string::npos))
         {
             terminateParsing=true;
         }
@@ -144,6 +161,8 @@ bool yasTwixReader::perform()
 
     if (!searchEntryList.empty())
     {
+        DEBUG("Parsing incomplete. There are missing entries.")
+
         result=MISSING_ENTRIES;
         return false;
     }
@@ -154,6 +173,12 @@ bool yasTwixReader::perform()
 
 bool yasTwixReader::splitAcquisitionTime(std::string input, std::string& timeString, std::string& dateString)
 {
+    if (input.empty())
+    {
+        DEBUG("Acquisition time is empty.")
+        return false;
+    }
+
     // Format is 1.3.12.2.1107.5.2.30.25654.1.20130506212248515.0.0.0
     timeString="";
     dateString="";
@@ -288,7 +313,6 @@ std::string yasTwixReader::getResultString()
 }
 
 
-
 std::string yasTwixReader::getValue(valueType value)
 {
     if (value>=valueCount)
@@ -297,5 +321,11 @@ std::string yasTwixReader::getValue(valueType value)
     }
 
     return values[value];
+}
+
+
+void yasTwixReader::setDebug(bool debugState)
+{
+    debugOutput=debugState;
 }
 
