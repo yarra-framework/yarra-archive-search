@@ -133,14 +133,15 @@ yasSearchPage::yasSearchPage(yasApplication* parent)
 
     WPanel* infoPanel=new WPanel();
     infoPanel->setTitleBar(true);
-    infoPanel->setTitle("Information");
+    infoPanel->setTitle("&nbsp;&nbsp;Information");
     infoPanel->addStyleClass("panel-info");
-    infoPanel->setMinimumSize(Wt::WLength::Auto,154);
+    infoPanel->setCollapsible(true);
 
     informationText=new WText("");
     infoPanel->setCentralWidget(informationText);
     pageLayout->addWidget(infoPanel);
     informationText->setMargin(0);
+    informationText->setMinimumSize(Wt::WLength::Auto,124);
 
     if (dbQuery->hasIndex(0,0))
     {
@@ -252,7 +253,19 @@ void yasSearchPage::showInformation()
                 informationContent+=" to server <span style=\"color: #580F8B;\">"+WString(entry->yarraServer)+"</span>";
             }
         }
+
         informationContent+="</p>";
+
+        if (!entry->patientID.empty())
+        {
+            informationContent+="<p style=\"margin-bottom: 0;\">MRN = <span style=\"color: #580F8B;\">"+WString(entry->patientID)+"</span>";
+
+            if (!entry->accessionNumber.empty())
+            {
+                informationContent+="&nbsp;&nbsp;ACC = <span style=\"color: #580F8B;\">"+WString(entry->accessionNumber)+"</span>";
+            }
+            informationContent+="</p>";
+        }
     }
 
     informationText->setText(informationContent);
