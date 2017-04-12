@@ -44,6 +44,10 @@ public:
     void performSearch();
     void showInformation();
     void updateTooltip();
+
+    void showStatistics();
+    void exportCSV();
+
 };
 
 

@@ -9,6 +9,9 @@
 #include <Wt/WLineEdit>
 #include <Wt/WPushButton>
 #include <Wt/WTable>
+#include <Wt/WPopupMenu>
+#include <Wt/WMemoryResource>
+#include <Wt/WMessageBox>
 
 #include <ctime>
 
@@ -22,6 +25,7 @@ saTableView::saTableView(WContainerWidget *parent)
     setLayoutSizeAware(true);
     prepared=false;
 }
+
 
 void saTableView::layoutSizeChanged(int width, int)
 {
@@ -41,6 +45,7 @@ void saTableView::layoutSizeChanged(int width, int)
         setColumnWidth(4, int(fullWidth*0.3));
     }
 }
+
 
 
 yasSearchPage::yasSearchPage(yasApplication* parent)
@@ -125,8 +130,19 @@ yasSearchPage::yasSearchPage(yasApplication* parent)
     searchButton->clicked().connect(this, &yasSearchPage::performSearch);
     searchEdit->enterPressed().connect(this, &yasSearchPage::performSearch);
 
+    Wt::WPopupMenu* popupMenu = new Wt::WPopupMenu();
+    popupMenu->addItem("Information...")->triggered().connect(this, &yasSearchPage::showStatistics);
+    popupMenu->addItem("Export as CSV...")->triggered().connect(this, &yasSearchPage::exportCSV);
+    popupMenu->addSeparator();
+    popupMenu->addItem("YAS Version " + WString(YAS_VERSION_WEBGUI));
+
+    WPushButton* menuButton=new WPushButton();
+    menuButton->setStyleClass("btn-default");
+    menuButton->setMenu(popupMenu);
+
     searchLayout->addWidget(searchEdit,1);
     searchLayout->addWidget(searchButton);
+    searchLayout->addWidget(menuButton);
     pageLayout->addWidget(searchWidgets);
 
     pageLayout->addWidget(tableView,1);
@@ -135,13 +151,12 @@ yasSearchPage::yasSearchPage(yasApplication* parent)
     infoPanel->setTitleBar(true);
     infoPanel->setTitle("&nbsp;&nbsp;Information");
     infoPanel->addStyleClass("panel-info");
-    infoPanel->setCollapsible(true);
+    infoPanel->setMinimumSize(Wt::WLength::Auto,154);
 
     informationText=new WText("");
     infoPanel->setCentralWidget(informationText);
     pageLayout->addWidget(infoPanel);
     informationText->setMargin(0);
-    informationText->setMinimumSize(Wt::WLength::Auto,124);
 
     if (dbQuery->hasIndex(0,0))
     {
@@ -284,3 +299,62 @@ void yasSearchPage::updateTooltip()
     tableView->setToolTip(toolTipText);
 }
 
+
+void yasSearchPage::showStatistics()
+{
+    WString messageText=WString("{1} entries found in archive.").arg(dbQuery->rowCount());
+
+    if (dbQuery->rowCount()==1)
+    {
+        messageText="1 entry found in archive.";
+    }
+
+    Wt::WMessageBox* messageBox=new Wt::WMessageBox("Search Result", messageText, Wt::Information, Wt::Ok);
+    messageBox->setModal(true);
+    messageBox->buttonClicked().connect(std::bind([=] ()
+    {
+        delete messageBox;
+    }));
+    messageBox->show();
+}
+
+
+void yasSearchPage::exportCSV()
+{
+    std::stringstream csv;
+
+    for (int j=0; j<dbQuery->columnCount(); j++)
+    {
+           csv << dbQuery->fieldName(j) << ",";
+    }
+    csv << "Filename" << ",";
+    csv << "\r\n";
+    csv << "\r\n";
+
+    for (int i=0; i<dbQuery->rowCount(); i++)
+    {
+        Wt::Dbo::ptr<yasArchiveEntry> entry=dbQuery->stableResultRow(i);
+
+        for (int j=0; j<dbQuery->columnCount(); j++)
+        {
+            std::string s = Wt::asString(dbQuery->data(i,j)).toUTF8();
+            boost::replace_all(s, "\"", "\"\"");
+            csv << "\"" << s << "\",";
+        }
+
+        // Additionally store the path and filename (not shown in the table)
+        std::string s = Wt::asString(entry->path + "/" + entry->filename).toUTF8();
+        boost::replace_all(s, "\"", "\"\"");
+        csv << "\"" << s << "\",";
+
+        csv << "\r\n";
+    }
+
+    std::string csvStr = csv.str();
+    std::vector<unsigned char> csvData(csvStr.begin(), csvStr.end());
+
+    Wt::WMemoryResource *csvResource = new Wt::WMemoryResource("text/csv", this);
+    csvResource->setData(csvData);
+    csvResource->suggestFileName("search.csv");
+    WApplication::instance()->redirect(csvResource->url());
+}
