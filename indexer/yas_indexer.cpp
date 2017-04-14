@@ -376,9 +376,21 @@ bool yasIndexer::indexFile(fs::path path, std::string aliasedPath, std::string f
     {
         fileEntry.modify()->patientName    =twixReader.getValue(yasTwixReader::patientName);
         fileEntry.modify()->patientID      =twixReader.getValue(yasTwixReader::patientID);
+        fileEntry.modify()->patientAge     =twixReader.getValue(yasTwixReader::patientAge);
+        fileEntry.modify()->patientGender  =twixReader.getValue(yasTwixReader::patientGender);
         fileEntry.modify()->protocolName   =twixReader.getValue(yasTwixReader::protocolName);
         fileEntry.modify()->acquisitionTime=twixReader.getValue(yasTwixReader::acquisitionTime);
         fileEntry.modify()->acquisitionDate=twixReader.getValue(yasTwixReader::acquisitionDate);
+
+        /*
+        LOG("patientName=" + twixReader.getValue(yasTwixReader::patientName));
+        LOG("patientID=" + twixReader.getValue(yasTwixReader::patientID));
+        LOG("patientAge=" + twixReader.getValue(yasTwixReader::patientAge));
+        LOG("patientGender=" + twixReader.getValue(yasTwixReader::patientGender));
+        LOG("protocolName=" + twixReader.getValue(yasTwixReader::protocolName));
+        LOG("acquisitionTime=" + twixReader.getValue(yasTwixReader::acquisitionTime));
+        LOG("acquisitionDate=" + twixReader.getValue(yasTwixReader::acquisitionDate));
+        */
     }
 
     // Read additional values from .task file

@@ -28,7 +28,7 @@ public:
         VDVE
     };
 
-    static constexpr int valueCount=5;
+    static constexpr int valueCount=7;
 
     enum valueType
     {
@@ -36,7 +36,9 @@ public:
         patientID,
         protocolName,
         acquisitionTime,
-        acquisitionDate
+        acquisitionDate,
+        patientAge,
+        patientGender
     };
 
 
@@ -50,6 +52,10 @@ public:
     std::string      getValue(valueType value);
     void             evaluateLine(std::string& line, std::ifstream& file);
     bool             splitAcquisitionTime(std::string input, std::string& timeString, std::string& dateString);
+    void             removePrecisionTag(std::string& line);
+    void             removeLeadingWhitespace(std::string& line);
+    void             removeEnclosingWhitespace(std::string& line);
+    void             findBraces(std::string& line, std::ifstream& file);
 
     void             setDebug(bool debugState);
     bool             debugOutput;
@@ -61,6 +67,7 @@ public:
 
     uint64_t         lastMeasOffset;
     uint32_t         headerLength;
+    uint32_t         headerEnd;
 
     yasTwixEntryList searchEntryList;
 };

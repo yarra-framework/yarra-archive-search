@@ -38,11 +38,13 @@ void saTableView::layoutSizeChanged(int width, int)
             fullWidth=1150;
         }
 
-        setColumnWidth(0, int(fullWidth*0.3));
-        setColumnWidth(1, int(fullWidth*0.13));
-        setColumnWidth(2, int(fullWidth*0.13));
-        setColumnWidth(3, int(fullWidth*0.13));
-        setColumnWidth(4, int(fullWidth*0.3));
+        setColumnWidth(0, int(fullWidth*0.28));
+        setColumnWidth(1, int(fullWidth*0.11));
+        setColumnWidth(2, int(fullWidth*0.11));
+        setColumnWidth(3, int(fullWidth*0.05));
+        setColumnWidth(4, int(fullWidth*0.05));
+        setColumnWidth(5, int(fullWidth*0.11));
+        setColumnWidth(6, int(fullWidth*0.28));
     }
 }
 
@@ -87,6 +89,8 @@ yasSearchPage::yasSearchPage(yasApplication* parent)
     dbQuery->addColumn("PatientName",     "Patient Name");
     dbQuery->addColumn("PatientID",       "MRN");
     dbQuery->addColumn("AccessionNumber", "ACC");
+    dbQuery->addColumn("PatientAge",      "Age");
+    dbQuery->addColumn("PatientGender",   "Gender");
     dbQuery->addColumn("AcquisitionDate", "Exam Date");
     dbQuery->addColumn("ProtocolName",    "Protocol");
 
@@ -98,15 +102,19 @@ yasSearchPage::yasSearchPage(yasApplication* parent)
     tableView->setHeaderHeight(32);
     tableView->setRowHeight(28);
     tableView->setColumnWidth(0, 350);
-    tableView->setColumnWidth(1, 150);
+    tableView->setColumnWidth(1, 150);   
     tableView->setColumnWidth(2, 150);
-    tableView->setColumnWidth(3, 150);
-    tableView->setColumnWidth(4, 350);
+    tableView->setColumnWidth(3, 50);
+    tableView->setColumnWidth(4, 50);
+    tableView->setColumnWidth(5, 150);
+    tableView->setColumnWidth(6, 350);
     tableView->setHeaderAlignment(0, Wt::AlignCenter);
     tableView->setHeaderAlignment(1, Wt::AlignCenter);
     tableView->setHeaderAlignment(2, Wt::AlignCenter);
     tableView->setHeaderAlignment(3, Wt::AlignCenter);
     tableView->setHeaderAlignment(4, Wt::AlignCenter);
+    tableView->setHeaderAlignment(5, Wt::AlignCenter);
+    tableView->setHeaderAlignment(6, Wt::AlignCenter);
 
     tableView->sortByColumn(0, AscendingOrder);
     tableView->setMinimumSize(Wt::WLength::Auto,100);

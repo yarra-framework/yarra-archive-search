@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <algorithm>
 
 
 yasTwixReader::yasTwixReader(std::string filename)
@@ -19,6 +20,7 @@ yasTwixReader::yasTwixReader(std::string filename)
 
     lastMeasOffset=0;
     headerLength=0;
+    headerEnd=0;
 
     debugOutput=false;
 }
@@ -33,9 +35,11 @@ yasTwixReader::~yasTwixReader()
 bool yasTwixReader::perform()
 {
     searchEntryList.clear();
-    searchEntryList.push_back(yasTwixEntry("<ParamString.\"tPatientName\">"    ,patientName));
-    searchEntryList.push_back(yasTwixEntry("<ParamString.\"PatientID\">"       ,patientID));
-    searchEntryList.push_back(yasTwixEntry("<ParamString.\"tProtocolName\">"   ,protocolName));
+    searchEntryList.push_back(yasTwixEntry("<ParamString.\"tPatientName\">" ,   patientName));
+    searchEntryList.push_back(yasTwixEntry("<ParamString.\"PatientID\">"    ,   patientID));
+    searchEntryList.push_back(yasTwixEntry("<ParamString.\"tProtocolName\">",   protocolName));
+    searchEntryList.push_back(yasTwixEntry("<ParamDouble.\"flPatientAge\">" ,   patientAge));
+    searchEntryList.push_back(yasTwixEntry("<ParamLong.\"PatientSex\">"     ,   patientGender));
     searchEntryList.push_back(yasTwixEntry("<ParamString.\"FrameOfReference\">",acquisitionTime));
 
     std::ifstream file;
@@ -130,10 +134,9 @@ bool yasTwixReader::perform()
     // Jump back to start of measurement block
     file.seekg(lastMeasOffset);
 
-    uint32_t headerEnd=lastMeasOffset+headerLength;
+    headerEnd=lastMeasOffset+headerLength;
 
     // Parse header
-
     bool terminateParsing=false;
 
     while ((!file.eof()) && (file.tellg()<headerEnd) && (!terminateParsing))
@@ -226,35 +229,67 @@ void yasTwixReader::evaluateLine(std::string& line, std::ifstream& file)
 
             value.erase(0,searchPos+searchEntryList.at(i).searchString.length());
 
-            int quotePos=value.find("\"");
-
-            if (quotePos==std::string::npos)
+            if (target==patientAge)
             {
-                // If the line does not contain quotation marks, the value might be in the next line
-                // TODO: Read two additional lines from the file
-            } else
-            {
-                // Delete the quotation marks including preceeding white space
-                value.erase(0,quotePos+1);
-            }
-
-            // Remove the trailing quotation mark if it exists
-            quotePos=value.find("\"");
-            if (quotePos!=std::string::npos)
-            {
-                value.erase(quotePos);
-            }
-
-            //std::cout << value << std::endl;
-
-            if (target==acquisitionTime)
-            {
-                // Split the string into date and time
-                splitAcquisitionTime(value, values[acquisitionTime], values[acquisitionDate]);
+                removePrecisionTag(value);
+                int dotPos=value.find(".");
+                if (dotPos!=std::string::npos)
+                {
+                    value.erase(dotPos);
+                }
+                values[target]=value;
             }
             else
             {
-                values[target]=value;
+                int quotePos=value.find("\"");
+
+                if (quotePos==std::string::npos)
+                {
+                    // If the line does not contain quotation marks, the value might be in the next line
+                    // TODO: Read two additional lines from the file
+                } else
+                {
+                    // Delete the quotation marks including preceeding white space
+                    value.erase(0,quotePos+1);
+                }
+
+                // Remove the trailing quotation mark if it exists
+                quotePos=value.find("\"");
+                if (quotePos!=std::string::npos)
+                {
+                    value.erase(quotePos);
+                }
+
+                //std::cout << value << std::endl;
+
+                if (target==acquisitionTime)
+                {
+                    // Split the string into date and time
+                    splitAcquisitionTime(value, values[acquisitionTime], values[acquisitionDate]);
+                }
+                else
+                {
+                    values[target]=value;
+                }
+
+                if (target==patientGender)
+                {
+                    findBraces(value, file);
+                    removeEnclosingWhitespace(value);
+
+                    if (value=="1")
+                    {
+                        values[target]="F";
+                    }
+                    if (value=="2")
+                    {
+                        values[target]="M";
+                    }
+                    if (value=="3")
+                    {
+                        values[target]="O";
+                    }
+                }
             }
 
             indexFound=i;
@@ -327,5 +362,71 @@ std::string yasTwixReader::getValue(valueType value)
 void yasTwixReader::setDebug(bool debugState)
 {
     debugOutput=debugState;
+}
+
+
+void yasTwixReader::removePrecisionTag(std::string& line)
+{
+    std::string tag="<Precision> ";
+
+    // First search and remove the tag
+    size_t tagPos=line.find(tag);
+    if (line.find(tag)!=std::string::npos)
+    {
+        line.erase(0,tagPos+tag.length());
+    }
+
+    // Now find the space separator and remove the precision number
+    size_t sepPos=line.find(" ");
+    if (sepPos!=std::string::npos)
+    {
+        line.erase(0,sepPos);
+    }
+
+    // Remove the whitespace around the actual value
+    removeEnclosingWhitespace(line);
+}
+
+
+void yasTwixReader::removeLeadingWhitespace(std::string& line)
+{
+    line.erase(line.begin(), std::find_if(line.begin(), line.end(), std::bind1st(std::not_equal_to<char>(), ' ')));
+}
+
+
+void yasTwixReader::removeEnclosingWhitespace(std::string& line)
+{
+    removeLeadingWhitespace(line);
+    line.erase(std::find_if(line.rbegin(), line.rend(), std::bind1st(std::not_equal_to<char>(), ' ')).base(), line.end());
+}
+
+
+void yasTwixReader::findBraces(std::string& line, std::ifstream& file)
+{
+    // Continue reading lines until the closing brace is found
+    while ((!file.eof()) && (file.tellg()<headerEnd) && (line.find("}")==std::string::npos))
+    {
+        std::string nextLine;
+        std::getline(file, nextLine);
+
+        line += nextLine;
+    }
+
+    size_t openBracePos=line.find("{");
+
+    if (openBracePos!=std::string::npos)
+    {
+        // Delete the quotation marks including preceeding white space
+        line.erase(0,openBracePos+1);
+    } else
+    {
+        LOG("WARNING: Incorrect format " << line);
+    }
+
+    size_t trailingBracePos=line.find("}");
+    if (trailingBracePos!=std::string::npos)
+    {
+        line.erase(trailingBracePos);
+    }
 }
 
