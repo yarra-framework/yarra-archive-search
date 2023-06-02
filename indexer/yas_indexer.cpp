@@ -164,16 +164,16 @@ bool yasIndexer::prepareDatabase()
 {
     try
     {
-        dbBackend=new Wt::Dbo::backend::Sqlite3(configuration.db_name.toUTF8());
+        dbBackend=new Wt::Dbo::backend::Postgres(configuration.db_name.toUTF8());
 
         // Set database to write-ahead-logging to avoid locking in the WebGUI while the indexer is running
-        dbBackend->executeSql("PRAGMA journal_mode=WAL;");
+        // dbBackend->executeSql("PRAGMA journal_mode=WAL;");
 
         dbSession=new Wt::Dbo::Session;
         dbSession->setConnection(*dbBackend);
 
         // Map the database table
-        dbSession->mapClass<yasArchiveEntry>("yasArchive");
+        dbSession->mapClass<yasArchiveEntry>("yas_archive");
     }
     catch (const Wt::Dbo::Exception & e)
     {
@@ -186,10 +186,11 @@ bool yasIndexer::prepareDatabase()
     {
         Wt::Dbo::Transaction transaction(*dbSession);
         dbSession->createTables();
-        dbSession->execute("CREATE INDEX index_yasArchive on yasArchive (Filename, Path);");
+        //dbSession->execute("CREATE INDEX index_yas_archive on yas_archive (Filename, Path);");
     }
     catch (const Wt::Dbo::Exception & e)
     {
+        std::cout << e.code() << std::endl;
     }
 
     return true;
@@ -312,7 +313,7 @@ void yasIndexer::dropUnseenEntries()
     std::time_t dropBefore=std::chrono::system_clock::to_time_t( std::chrono::system_clock::now()-days(configuration.keepUnseenEntries) );
 
     Wt::Dbo::Transaction transaction(*dbSession);
-    dbSession->execute("DELETE FROM yasArchive WHERE LastSeen < ? ").bind(dropBefore);
+    dbSession->execute("DELETE FROM yas_archive WHERE last_seen < ? ").bind(dropBefore);
 }
 
 
@@ -335,7 +336,14 @@ bool yasIndexer::isFileIndexed(std::string path, std::string filename)
     return false;
 }
 
-
+template <typename TP>
+std::time_t to_time_t(TP tp)
+{
+    using namespace std::chrono;
+    auto sctp = time_point_cast<system_clock::duration>(tp - TP::clock::now()
+              + system_clock::now());
+    return system_clock::to_time_t(sctp);
+}
 bool yasIndexer::indexFile(fs::path path, std::string aliasedPath, std::string filename)
 {
     //LOG("DBG   : " << path.string());
@@ -354,7 +362,7 @@ bool yasIndexer::indexFile(fs::path path, std::string aliasedPath, std::string f
 
     try
     {
-        fileEntry.modify()->writeTime=fs::last_write_time(path);
+        fileEntry.modify()->writeTime=to_time_t(fs::last_write_time(path));
     }
     catch (const fs::filesystem_error & e)
     {

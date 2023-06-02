@@ -1,0 +1,18 @@
+--- YASIndexer.pro
++++ YASIndexer.pro
+@@ -1,7 +1,14 @@
+ TARGET = YASIndexer
+ 
+ # Define identifier for Ubuntu Linux version (UBUNTU_1204 / UBUNTU_1404)
+-BUILD_OS=UBUNTU_1204
++BUILD_OS=UBUNTU_1604
++
++equals( BUILD_OS, "UBUNTU_1604" ) {
++    message( "Configuring for Ubuntu 16.04" )
++    QMAKE_CXXFLAGS += -DUBUNTU_1604
++    ICU_PATH=/usr/lib/x86_64-linux-gnu
++    BOOST_PATH=/usr/lib/x86_64-linux-gnu
++}
+ 
+ equals( BUILD_OS, "UBUNTU_1404" ) {
+     message( "Configuring for Ubuntu 14.04" )

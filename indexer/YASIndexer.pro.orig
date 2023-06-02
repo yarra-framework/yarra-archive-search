@@ -66,8 +66,8 @@ LIBS += $$BOOST_PATH/libboost_system.a
 
 LIBS += -lrt
 LIBS += -ldl
-LIBS += -lstdc++fs
 LIBS += -lpq
+LIBS += -lstdc++fs
 TEMPLATE = app
 
 SOURCES += main.cpp \ 
