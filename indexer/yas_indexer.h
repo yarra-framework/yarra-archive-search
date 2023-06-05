@@ -3,9 +3,9 @@
 
 #include "../common/yas_configuration.h"
 
-#include <Wt/Dbo/Dbo>
-#include <Wt/Dbo/backend/Sqlite3>
-#include <Wt/Dbo/backend/Postgres>
+#include <Wt/Dbo/Dbo.h>
+#include <Wt/Dbo/backend/Sqlite3.h>
+#include <Wt/Dbo/backend/Postgres.h>
 #include <experimental/filesystem>
 
 #include <boost/property_tree/ini_parser.hpp>
@@ -43,8 +43,7 @@ public:
 
     std::string getAliasedPath(std::string fullPath, std::string folder, std::string alias);
 
-    Wt::Dbo::backend::Postgres* dbBackend;
-    Wt::Dbo::Session* dbSession;
+    std::unique_ptr<Wt::Dbo::Session> dbSession;
 
     yasConfiguration configuration;
 

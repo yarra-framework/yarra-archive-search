@@ -59,12 +59,12 @@ bool yasTwixReader::perform()
     if ((x[0]==0) && (x[1]<=64))
     {
         fileVersion=VDVE;
-        DEBUG("File type is VD/VE");
+        YAS_DEBUG("File type is VD/VE");
     }
     else
     {
         fileVersion=VAVB;
-        DEBUG("File type is VA/VB");
+        YAS_DEBUG("File type is VA/VB");
     }
     file.seekg(0);
 
@@ -76,7 +76,7 @@ bool yasTwixReader::perform()
         file.read((char*)&id,   sizeof(uint32_t));  // ID
         file.read((char*)&ndset,sizeof(uint32_t));  // # data sets
 
-        DEBUG("Numer of datasets in file: " << ndset);
+        YAS_DEBUG("Numer of datasets in file: " << ndset);
 
         if (ndset>30)
         {
@@ -164,7 +164,7 @@ bool yasTwixReader::perform()
 
     if (!searchEntryList.empty())
     {
-        DEBUG("Parsing incomplete. There are missing entries.")
+        YAS_DEBUG("Parsing incomplete. There are missing entries.")
 
         result=MISSING_ENTRIES;
         return false;
@@ -178,7 +178,7 @@ bool yasTwixReader::splitAcquisitionTime(std::string input, std::string& timeStr
 {
     if (input.empty())
     {
-        DEBUG("Acquisition time is empty.")
+        YAS_DEBUG("Acquisition time is empty.");
         return false;
     }
 
@@ -187,7 +187,7 @@ bool yasTwixReader::splitAcquisitionTime(std::string input, std::string& timeStr
     dateString="";
 
     // Remove the numbers and dots in front of the date/time section
-    int dotPos=0;
+    std::string::size_type dotPos=0;
 
     for (int i=0; i<10; i++)
     {
@@ -215,9 +215,9 @@ bool yasTwixReader::splitAcquisitionTime(std::string input, std::string& timeStr
 void yasTwixReader::evaluateLine(std::string& line, std::ifstream& file)
 {
     int indexFound=-1;
-    int searchPos=std::string::npos;
+    std::string::size_type searchPos=std::string::npos;
 
-    for (int i=0; i<searchEntryList.size(); i++)
+    for (std::size_t i=0; i<searchEntryList.size(); i++)
     {
         searchPos=line.find(searchEntryList.at(i).searchString);
 
@@ -232,7 +232,7 @@ void yasTwixReader::evaluateLine(std::string& line, std::ifstream& file)
             if (target==patientAge)
             {
                 removePrecisionTag(value);
-                int dotPos=value.find(".");
+                auto dotPos=value.find(".");
                 if (dotPos!=std::string::npos)
                 {
                     value.erase(dotPos);
@@ -241,7 +241,7 @@ void yasTwixReader::evaluateLine(std::string& line, std::ifstream& file)
             }
             else
             {
-                int quotePos=value.find("\"");
+                std::string::size_type quotePos=value.find("\"");
 
                 if (quotePos==std::string::npos)
                 {

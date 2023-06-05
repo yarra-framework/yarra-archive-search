@@ -3,7 +3,7 @@
 #include <iostream>
 #include <vector>
 #include <chrono>
-
+#include <Wt/WString.h>
 #include "yas_indexer.h"
 
 

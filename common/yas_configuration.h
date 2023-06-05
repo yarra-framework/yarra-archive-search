@@ -1,7 +1,7 @@
 #ifndef YAS_CONFIGURATION_H
 #define YAS_CONFIGURATION_H
 
-#include <Wt/WString>
+#include <Wt/WString.h>
 #include <map>
 
 #include "../common/yas_global.h"
@@ -24,7 +24,7 @@ public:
     std::map<std::string, std::string> folderAlias;
 
     int keepUnseenEntries;
-    WString db_name;
+    WString db_connection;
 
 
 private:

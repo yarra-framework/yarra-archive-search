@@ -1,7 +1,7 @@
 #ifndef YAS_ARCHIVEENTRY_H
 #define YAS_ARCHIVEENTRY_H
 
-#include <Wt/Dbo/Dbo>
+#include <Wt/Dbo/Dbo.h>
 
 
 class yasArchiveEntry
@@ -31,24 +31,24 @@ public:
     template<class Action>
     void persist(Action &a)
     {
-        Wt::Dbo::field(a, lastSeen,        "LastSeen");
+        Wt::Dbo::field(a, lastSeen,        "last_seen");
 
-        Wt::Dbo::field(a, filename,        "Filename");
-        Wt::Dbo::field(a, path,            "Path");
-        Wt::Dbo::field(a, writeTime,       "WriteTime");
+        Wt::Dbo::field(a, filename,        "filename");
+        Wt::Dbo::field(a, path,            "path");
+        Wt::Dbo::field(a, writeTime,       "write_time");
 
-        Wt::Dbo::field(a, patientName,     "PatientName");
-        Wt::Dbo::field(a, patientID,       "PatientID");
-        Wt::Dbo::field(a, patientAge,      "PatientAge");
-        Wt::Dbo::field(a, patientGender,   "PatientGender");
+        Wt::Dbo::field(a, patientName,     "patient_name");
+        Wt::Dbo::field(a, patientID,       "patient_id");
+        Wt::Dbo::field(a, patientAge,      "patient_age");
+        Wt::Dbo::field(a, patientGender,   "patient_gender");
 
-        Wt::Dbo::field(a, protocolName,    "ProtocolName");
-        Wt::Dbo::field(a, acquisitionTime, "AcquisitionTime");
-        Wt::Dbo::field(a, acquisitionDate, "AcquisitionDate");
+        Wt::Dbo::field(a, protocolName,    "protocol_name");
+        Wt::Dbo::field(a, acquisitionTime, "acquisition_time");
+        Wt::Dbo::field(a, acquisitionDate, "acquisition_date");
 
-        Wt::Dbo::field(a, MRSystem,        "MRSystem");
-        Wt::Dbo::field(a, accessionNumber, "AccessionNumber");
-        Wt::Dbo::field(a, yarraServer,     "YarraServer");
+        Wt::Dbo::field(a, MRSystem,        "mr_system");
+        Wt::Dbo::field(a, accessionNumber, "accession_number");
+        Wt::Dbo::field(a, yarraServer,     "yarra_server");
     }
 
 

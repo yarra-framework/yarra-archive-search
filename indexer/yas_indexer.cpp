@@ -3,7 +3,7 @@
 #include "../common/yas_archiveentry.h"
 #include "yas_twixreader.h"
 
-#include <Wt/WString>
+#include <Wt/WString.h>
 
 #include <boost/property_tree/ini_parser.hpp>
 
@@ -21,9 +21,6 @@ yasIndexer::yasIndexer(int argc, char* argv[])
     returnValue=0;
     debugOutput=false;
     action=ABORT;
-
-    dbBackend=nullptr;
-    dbSession=nullptr;
 
     LOG("");
     LOG("Yarra Archive Search -- Indexer Version "+WString(YAS_VERSION_INDEXER));
@@ -55,15 +52,6 @@ yasIndexer::yasIndexer(int argc, char* argv[])
 
 yasIndexer::~yasIndexer()
 {
-    if (dbBackend)
-    {
-        delete dbBackend;
-    }
-
-    if (dbSession)
-    {
-        delete dbSession;
-    }
 }
 
 
@@ -111,7 +99,10 @@ void yasIndexer::runIndexer()
         return;
     }
 
-    prepareDatabase();
+    if (!prepareDatabase()) {
+        LOG("Database preparation failed. Aborting.")
+        return;
+    };
     processFolders();
     dropUnseenEntries();
     LOG("");
@@ -140,21 +131,21 @@ void yasIndexer::clearIndex()
             return;
         }
 
-        if (fs::is_regular_file(fs::path(configuration.db_name.toUTF8())))
+        if (fs::is_regular_file(fs::path(configuration.db_connection.toUTF8())))
         {
             try
             {
-                fs::remove(fs::path(configuration.db_name.toUTF8()));
+                fs::remove(fs::path(configuration.db_connection.toUTF8()));
             }
             catch (const boost::exception & e)
             {
-                LOG("ERROR: Unable to remove database file " << configuration.db_name);
+                LOG("ERROR: Unable to remove database file " << configuration.db_connection);
             }
             LOG("Done.")
         }
         else
         {
-            LOG("ERROR: Database file not  found " << configuration.db_name);
+            LOG("ERROR: Database file not  found " << configuration.db_connection);
         }
     }
 }
@@ -164,19 +155,20 @@ bool yasIndexer::prepareDatabase()
 {
     try
     {
-        dbBackend=new Wt::Dbo::backend::Postgres(configuration.db_name.toUTF8());
+        auto dbBackend=std::make_unique<Wt::Dbo::backend::Postgres>(configuration.db_connection.toUTF8());
 
         // Set database to write-ahead-logging to avoid locking in the WebGUI while the indexer is running
         // dbBackend->executeSql("PRAGMA journal_mode=WAL;");
 
-        dbSession=new Wt::Dbo::Session;
-        dbSession->setConnection(*dbBackend);
-
+        dbSession = std::make_unique<Wt::Dbo::Session>();
+        dbSession->setConnection(std::move(dbBackend));
         // Map the database table
         dbSession->mapClass<yasArchiveEntry>("yas_archive");
+
     }
     catch (const Wt::Dbo::Exception & e)
     {
+        LOG(e.what());
         return false;
     }
 
@@ -246,11 +238,11 @@ void yasIndexer::processFolders()
                             std::string aliasedPath=getAliasedPath(dir_entry->path().parent_path().string(), folder, alias);
                             std::string filename=dir_entry->path().filename().string();
 
-                            DEBUG("Processing " << dir_entry->path().string());
+                            YAS_DEBUG("Processing " << dir_entry->path().string());
 
                             if (!isFileIndexed(aliasedPath, filename))
                             {
-                                DEBUG("New file, adding to index.");
+                                YAS_DEBUG("New file, adding to index.");
 
                                 // Create new index entry for file
                                 if (indexFile(dir_entry->path(), aliasedPath, filename))
@@ -260,7 +252,7 @@ void yasIndexer::processFolders()
                             }
                             else
                             {
-                                DEBUG("File already indexed.");
+                                YAS_DEBUG("File already indexed.");
                             }
 
                         }
@@ -352,7 +344,7 @@ bool yasIndexer::indexFile(fs::path path, std::string aliasedPath, std::string f
     //LOG("");
 
     // Create new index entry
-    Wt::Dbo::ptr<yasArchiveEntry> fileEntry(new yasArchiveEntry());
+    Wt::Dbo::ptr<yasArchiveEntry> fileEntry(std::unique_ptr<yasArchiveEntry>(new yasArchiveEntry()));
 
     bool isEntryValid=true;
 

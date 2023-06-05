@@ -22,9 +22,8 @@ yasConfiguration::yasConfiguration()
     webgui_password="none";
 
     keepUnseenEntries=14;
-    db_name="yas.db";
+    db_connection="yas.db";
 }
-
 
 void yasConfiguration::loadConfiguration()
 {
@@ -36,7 +35,7 @@ void yasConfiguration::loadConfiguration()
         // Read main settings
         webgui_port    =WString::fromUTF8(inifile.get<std::string>("WebGUI.Port"    ,webgui_port.toUTF8()));
         webgui_password=WString::fromUTF8(inifile.get<std::string>("WebGUI.Password",webgui_password.toUTF8()));
-
+        db_connection  =WString::fromUTF8(inifile.get<std::string>("Database.Connection",db_connection.toUTF8()));
         // Read the list of folders that should be parsed by the indexer
         BOOST_FOREACH(boost::property_tree::ptree::value_type &v, inifile.get_child("Folders"))
         {
