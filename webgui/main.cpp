@@ -1,7 +1,7 @@
 #include <functional>
 #include <iostream>
 
-#include <Wt/WApplication>
+#include <Wt/WApplication.h>
 
 #include "yas_application.h"
 
@@ -10,12 +10,11 @@
 yasConfiguration configurationInstance;
 
 
-WApplication* createApplication(const WEnvironment& env)
+std::unique_ptr<yasApplication> createApplication(const WEnvironment& env)
 {
-    yasApplication* app=new yasApplication(env);
+    auto app = std::make_unique<yasApplication>(env);
     app->prepare(&configurationInstance);
-
-    return (WApplication*) app;
+    return app;
 }
 
 

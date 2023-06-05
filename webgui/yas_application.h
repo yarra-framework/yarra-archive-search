@@ -1,9 +1,9 @@
 #ifndef YAS_APPLICATION_H
 #define YAS_APPLICATION_H
 
-#include <Wt/WApplication>
-#include <Wt/WString>
-#include <Wt/WVBoxLayout>
+#include <Wt/WApplication.h>
+#include <Wt/WString.h>
+#include <Wt/WVBoxLayout.h>
 
 #include "../common/yas_configuration.h"
 

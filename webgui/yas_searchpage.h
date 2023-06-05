@@ -3,11 +3,11 @@
 
 #include "../common/yas_archiveentry.h"
 
-#include <Wt/WTableView>
-#include <Wt/Dbo/Dbo>
-#include <Wt/Dbo/backend/Sqlite3>
-#include <Wt/Dbo/QueryModel>
-#include <Wt/WContainerWidget>
+#include <Wt/WTableView.h>
+#include <Wt/Dbo/Dbo.h>
+#include <Wt/Dbo/backend/Sqlite3.h>
+#include <Wt/Dbo/QueryModel.h>
+#include <Wt/WContainerWidget.h>
 
 using namespace Wt;
 
@@ -31,9 +31,9 @@ class yasSearchPage : public WContainerWidget
 public:
     yasSearchPage(yasApplication* parent);
 
-    Wt::Dbo::backend::Sqlite3 dbBackend;
-    Wt::Dbo::Session          dbSession;
-    Wt::Dbo::QueryModel<Wt::Dbo::ptr<yasArchiveEntry>>* dbQuery;
+    // Wt::Dbo::backend::Sqlite3 dbBackend;
+    std::unique_ptr<Wt::Dbo::Session> dbSession;
+    std::unique_ptr<Wt::Dbo::QueryModel<Wt::Dbo::ptr<yasArchiveEntry>>> dbQuery;
 
     saTableView* tableView;
     WLineEdit*   searchEdit;

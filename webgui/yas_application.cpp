@@ -1,20 +1,20 @@
 #include "yas_application.h"
 #include "yas_searchpage.h"
 
-#include <Wt/WNavigationBar>
-#include <Wt/WBootstrapTheme>
-#include <Wt/WHBoxLayout>
-#include <Wt/WOverlayLoadingIndicator>
-#include <Wt/WPanel>
-#include <Wt/WTabWidget>
-#include <Wt/WTextArea>
-#include <Wt/WString>
-#include <Wt/WText>
-#include <Wt/WContainerWidget>
-#include <Wt/WLabel>
-#include <Wt/WLineEdit>
-#include <Wt/WPushButton>
-#include <Wt/WMenu>
+#include <Wt/WNavigationBar.h>
+#include <Wt/WBootstrapTheme.h>
+#include <Wt/WHBoxLayout.h>
+#include <Wt/WOverlayLoadingIndicator.h>
+#include <Wt/WPanel.h>
+#include <Wt/WTabWidget.h>
+#include <Wt/WTextArea.h>
+#include <Wt/WString.h>
+#include <Wt/WText.h>
+#include <Wt/WContainerWidget.h>
+#include <Wt/WLabel.h>
+#include <Wt/WLineEdit.h>
+#include <Wt/WPushButton.h>
+#include <Wt/WMenu.h>
 
 
 yasApplication::yasApplication(const WEnvironment& env)
@@ -26,10 +26,10 @@ yasApplication::yasApplication(const WEnvironment& env)
     layout_main=0;
     navbar=0;
 
-    setLoadingIndicator(new Wt::WOverlayLoadingIndicator());
+    setLoadingIndicator(std::make_unique<Wt::WOverlayLoadingIndicator>());
 
-    Wt::WBootstrapTheme *bootstrapTheme = new Wt::WBootstrapTheme(this);
-    bootstrapTheme->setVersion(Wt::WBootstrapTheme::Version3);
+    auto bootstrapTheme = std::make_shared<Wt::WBootstrapTheme>();
+    bootstrapTheme->setVersion(Wt::WBootstrapTheme::Version::v3);
     bootstrapTheme->setResponsive(true);
     setTheme(bootstrapTheme);
     useStyleSheet("style/bootstrap.min.css");
@@ -42,29 +42,25 @@ void yasApplication::prepare(yasConfiguration* configInstance)
     setTitle("Yarra Archive Search");
     configuration=configInstance;
 
-    Wt::WVBoxLayout* layout=new Wt::WVBoxLayout();
+    auto layout = root()->setLayout(std::make_unique<Wt::WVBoxLayout>());
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
-    root()->setLayout(layout);
 
-    navbar=new WNavigationBar();
+    navbar = layout->addWidget(std::make_unique<WNavigationBar>());
     navbar->setTitle("Yarra Archive Search");
     navbar->setResponsive(true);
     navbar->addStyleClass("main-nav");
-    navbar->setMargin(0,Wt::Bottom);
+    navbar->setMargin(0,Wt::Side::Bottom);
 
-    rightMenu=new Wt::WMenu();
-    navbar->addMenu(rightMenu, Wt::AlignRight);
+    rightMenu = navbar->addMenu(std::make_unique<Wt::WMenu>(), Wt::AlignmentFlag::Right);
 
-    layout->addWidget(navbar);
-
-    WContainerWidget* container=new WContainerWidget();
-    layout_main=new Wt::WVBoxLayout();
+    auto container = layout->addWidget(std::make_unique<WContainerWidget>(),1);
+    layout_main=container->setLayout(std::make_unique<Wt::WVBoxLayout>());
     layout_main->setContentsMargins(0, 0, 0, 0);
-    container->setLayout(layout_main);
+
     //container->decorationStyle().setBackgroundColor(WColor(200,200,200));
 
-    layout->addWidget(container,1);
+
 
     createLoginPage();
 }

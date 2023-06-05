@@ -3,15 +3,15 @@
 
 #include <boost/algorithm/string/replace.hpp>
 
-#include <Wt/WPanel>
-#include <Wt/WVBoxLayout>
-#include <Wt/WHBoxLayout>
-#include <Wt/WLineEdit>
-#include <Wt/WPushButton>
-#include <Wt/WTable>
-#include <Wt/WPopupMenu>
-#include <Wt/WMemoryResource>
-#include <Wt/WMessageBox>
+#include <Wt/WPanel.h>
+#include <Wt/WVBoxLayout.h>
+#include <Wt/WHBoxLayout.h>
+#include <Wt/WLineEdit.h>
+#include <Wt/WPushButton.h>
+#include <Wt/WTable.h>
+#include <Wt/WPopupMenu.h>
+#include <Wt/WMemoryResource.h>
+#include <Wt/WMessageBox.h>
 
 #include <ctime>
 
@@ -51,20 +51,22 @@ void saTableView::layoutSizeChanged(int width, int)
 
 
 yasSearchPage::yasSearchPage(yasApplication* parent)
-    : WContainerWidget(), dbBackend(parent->configuration->db_name.toUTF8())
+    : WContainerWidget())
 {
     app=parent;
 
     try
     {
-        // Set database to write-ahead-logging to avoid locking while the indexer is running
-        dbBackend.executeSql("PRAGMA journal_mode=WAL;");
+        auto dbBackend=std::make_unique<Wt::Dbo::backend::Sqlite3>(parent->configuration->db_connection.toUTF8());
 
-        // Init the db connection
-        dbSession.setConnection(dbBackend);
+        // Set database to write-ahead-logging to avoid locking in the WebGUI while the indexer is running
+        dbBackend->executeSql("PRAGMA journal_mode=WAL;");
+
+        dbSession = std::make_unique<Wt::Dbo::Session>();
+        dbSession->setConnection(std::move(dbBackend));
 
         // Map the database table
-        dbSession.mapClass<yasArchiveEntry>("yasArchive");
+        dbSession->mapClass<yasArchiveEntry>("yasArchive");
     }
     catch (const Wt::Dbo::Exception & e)
     {
@@ -76,15 +78,15 @@ yasSearchPage::yasSearchPage(yasApplication* parent)
     // Create the database in case that it does not exist yet
     try
     {
-        dbSession.createTables();
+        dbSession->createTables();
     }
     catch (const Wt::Dbo::Exception & e)
     {
     }
 
 
-    dbQuery = new Wt::Dbo::QueryModel<Wt::Dbo::ptr<yasArchiveEntry>>();
-    dbQuery->setQuery(dbSession.find<yasArchiveEntry>());
+    dbQuery = std::make_unique<Wt::Dbo::QueryModel<Wt::Dbo::ptr<yasArchiveEntry>>>();
+    dbQuery->setQuery(dbSession->find<yasArchiveEntry>());
 
     dbQuery->addColumn("PatientName",     "Patient Name");
     dbQuery->addColumn("PatientID",       "MRN");
@@ -97,7 +99,7 @@ yasSearchPage::yasSearchPage(yasApplication* parent)
     tableView=new saTableView();
     tableView->setSelectionMode(SingleSelection);
     tableView->setAlternatingRowColors(true);
-    tableView->setModel(dbQuery);
+    tableView->setModel(std::move(dbQuery));
 
     tableView->setHeaderHeight(32);
     tableView->setRowHeight(28);
@@ -198,11 +200,11 @@ void yasSearchPage::performSearch()
 
     if (searchPhrases.empty())
     {
-        dbQuery->setQuery(dbSession.find<yasArchiveEntry>(), true);
+        dbQuery->setQuery(dbSession->find<yasArchiveEntry>(), true);
     }
     else
     {
-        auto query=dbSession.query<Wt::Dbo::ptr<yasArchiveEntry>>("select m from yasArchive m");
+        auto query=dbSession->query<Wt::Dbo::ptr<yasArchiveEntry>>("select m from yasArchive m");
 
         for (auto phrase : searchPhrases)
         {
