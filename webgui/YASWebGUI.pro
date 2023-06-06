@@ -17,7 +17,7 @@ equals( BUILD_OS, "UBUNTU_1204" ) {
     BOOST_PATH=/usr/local/lib
 }
 
-QMAKE_CXXFLAGS += -DNDEBUG -std=c++11 -DWT_DEPRECATED_3_0_0
+QMAKE_CXXFLAGS += -DNDEBUG -std=c++17 -DWT_DEPRECATED_3_0_0
 
 # Statically link dependencies
 LIBS += /usr/local/lib/libwthttp.a
